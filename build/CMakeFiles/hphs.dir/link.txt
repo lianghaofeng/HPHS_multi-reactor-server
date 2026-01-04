@@ -1,0 +1,1 @@
+/usr/bin/c++  -Wall -Wextra -O3 -DNDEBUG -march=native -flto CMakeFiles/hphs.dir/src/main.cpp.o CMakeFiles/hphs.dir/src/worker.cpp.o CMakeFiles/hphs.dir/src/http_request.cpp.o CMakeFiles/hphs.dir/src/http_response.cpp.o CMakeFiles/hphs.dir/src/http_server.cpp.o CMakeFiles/hphs.dir/src/thread_pool.cpp.o CMakeFiles/hphs.dir/src/work_stealing_pool.cpp.o -o hphs 
