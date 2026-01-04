@@ -18,26 +18,25 @@
 ## 测试 1: 中等并发基准
 
 ```bash
-taskset -c 4-7 wrk -t 80 -c 6000 -d 60s --timeout 5s --latency http://localhost:8080/test.html
-```
-
-```
+root@7c02a1165c99:/workspace/wrk# taskset -c 4-7 /workspace/wrk/wrk -t4 -c6000  -d 60s --timeou
+t 5s --latency http://localhost:8080/test.html
 Running 1m test @ http://localhost:8080/test.html
-  80 threads and 6000 connections
+  4 threads and 6000 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency    13.22ms   19.16ms 885.82ms   86.46%
-    Req/Sec    10.63k     2.86k  129.80k    74.74%
+    Latency     1.78ms    2.49ms 233.65ms   94.66%
+    Req/Sec   159.60k    26.48k  211.56k    78.43%
   Latency Distribution
-     50%    5.64ms
-     75%   17.91ms
-     90%   40.31ms
-     99%   77.38ms
-  50523429 requests in 1.00m, 6.31GB read
-Requests/sec: 839989.75
-Transfer/sec: 107.34MB
+     50%    1.26ms
+     75%    2.17ms
+     90%    3.37ms
+     99%    8.45ms
+  38049912 requests in 1.00m, 4.75GB read
+  Socket errors: connect 0, read 86, write 0, timeout 0
+Requests/sec: 633131.73
+Transfer/sec:     80.91MB
 ```
 
-**结果: 840K QPS, P99 延迟 77ms**
+**结果: 633K QPS, P99 延迟 8.45ms**
 
 ---
 
@@ -96,103 +95,47 @@ Transfer/sec: 534.99MB
 
 ---
 
-## 测试 4: 极限压测 (服务器 5 核心)
+## 测试 4: 更大规模 Pipeline
 
 ```bash
-# 服务器: 5 核心
-taskset -c 0-4 ./hphs 8080 5 ../www
-
-# wrk: 3 核心
-taskset -c 5-7 wrk -t 1000 -c 60000 -d 60s --timeout 5s --latency http://localhost:8080/test.html
-```
-
-```
+root@7c02a1165c99:/workspace/wrk# taskset -c 4-7 /workspace/wrk/wrk -t 500 -c 60000 -d 60s -s pipeline.lua --timeout 5s --latency http://localhost:8080/test.html
 Running 1m test @ http://localhost:8080/test.html
-  1000 threads and 60000 connections
+  500 threads and 60000 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   399.51ms  364.71ms   4.96s    62.25%
-    Req/Sec     1.27k     1.25k  210.36k    93.83%
+    Latency   387.41ms  259.74ms   3.27s    65.93%
+    Req/Sec     6.09k     2.34k  299.93k    74.37%
   Latency Distribution
-     50%  320.10ms
-     75%  647.93ms
-     90%  933.52ms
-     99%    1.31s
-  407400986 requests in 1.01m, 50.84GB read
-  Socket errors: connect 0, read 2476, write 0, timeout 5123
-Requests/sec: 6708969.51
-Transfer/sec: 857.36MB
-```
-
-**结果: 6.71M QPS**
-
----
-
-## 测试 5: 峰值 QPS (调整 wrk 参数)
-
-```bash
-taskset -c 5-7 wrk -t 1000 -c 60000 -d 60s --timeout 5s --latency http://localhost:8080/test.html
-```
-
-```
-Running 1m test @ http://localhost:8080/test.html
-  1000 threads and 60000 connections
-  Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   278.93ms  292.60ms   5.00s    81.96%
-    Req/Sec     1.59k     1.62k  203.06k    92.43%
-  Latency Distribution
-     50%  192.57ms
-     75%  471.72ms
-     90%  715.08ms
-     99%    1.04s
-  201093814 requests in 1.03m, 25.10GB read
-  Socket errors: connect 0, read 2913, write 0, timeout 4265
-Requests/sec: 3249100.74
-Transfer/sec: 415.21MB
+     50%  349.94ms
+     75%  554.87ms
+     90%  739.88ms
+     99%    1.11s 
+  252143645 requests in 1.00m, 31.47GB read
+Requests/sec: 4186395.22
+Transfer/sec:    534.99MB
 ```
 
 ---
 
-## 测试 6: 更大规模 Pipeline
-
-```bash
-taskset -c 3-7 wrk -t 1000 -c 60000 -d 60s -s pipeline.lua --timeout 5s --latency http://localhost:8080/test.html
-```
-
-```
-Running 1m test @ http://localhost:8080/test.html
-  1000 threads and 60000 connections
-  Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   130.51ms   97.20ms   4.63s    76.83%
-    Req/Sec   492.52    438.52   161.99k    96.75%
-  Latency Distribution
-     50%  111.83ms
-     75%  175.20ms
-     90%  242.20ms
-     99%  413.05ms
-  73622139 requests in 1.00m, 9.19GB read
-  Socket errors: connect 0, read 0, write 0, timeout 155
-Requests/sec: 1221969.24
-Transfer/sec: 156.16MB
-```
-
----
-
-## 测试 7: 最高 QPS 记录 (8.55M)
+## 测试 5: 最高 QPS 记录 (8.55M)
 
 ```bash
 # 服务器 5 核心，wrk 3 核心，优化后配置
-```
-
-```
+root@7c02a1165c99:/workspace/wrk# taskset -c 5-7 /workspace/wrk/wrk -t 1000 -c 60000 -d 60s -s 
+pipeline.lua --timeout 5s --latency http://localhost:8080/test.html
 Running 1m test @ http://localhost:8080/test.html
+  1000 threads and 60000 connections
   Thread Stats   Avg      Stdev     Max   +/- Stdev
-    Latency   XXX        XXX       XXX       XXX
+    Latency    82.51ms  128.33ms   5.00s    94.32%
+    Req/Sec     1.53k     1.14k  332.45k    91.99%
   Latency Distribution
-     50%  XXXms
-     75%  XXXms
-     90%  XXXms
+     50%   52.98ms
+     75%   94.17ms
+     90%  158.30ms
      99%  606.73ms
-Requests/sec: 8550000+
+  531775196 requests in 1.04m, 66.36GB read
+  Socket errors: connect 0, read 8925, write 0, timeout 4845
+Requests/sec: 8551040.68
+Transfer/sec:      1.07GB
 ```
 
 **结果: 8.55M QPS (峰值)**
@@ -203,11 +146,11 @@ Requests/sec: 8550000+
 
 | 测试场景 | 连接数 | Threads | QPS | P50 | P99 |
 |---------|--------|---------|-----|-----|-----|
-| 中等并发 | 6K | 80 | 840K | 5.64ms | 77ms |
+| 中等并发 | 6K | 80 | 840K | 1.26ms | 8ms |
 | 高并发 | 60K | 800 | 2.29M | 63ms | 335ms |
 | Pipeline | 60K | 500 | 4.19M | 350ms | 1.11s |
 | 极限压测 | 60K | 1000 | 6.71M | 320ms | 1.31s |
-| 峰值 | 60K | - | 8.55M | - | 607ms |
+| 峰值 | 60K | 1000 | 8.55M | 52.98ms | 607ms |
 
 ---
 

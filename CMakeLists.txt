@@ -21,8 +21,6 @@ set(SOURCES
     src/http_request.cpp
     src/http_response.cpp
     src/http_server.cpp
-    src/thread_pool.cpp
-    src/work_stealing_pool.cpp
 )
 
 # 头文件目录
