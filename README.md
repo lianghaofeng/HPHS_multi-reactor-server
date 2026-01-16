@@ -16,27 +16,7 @@
 
 ## 架构设计
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        HttpServer                           │
-│  ┌─────────────┐                                            │
-│  │ResponseCache│  ← 启动时预加载静态文件到内存               │
-│  └─────────────┘                                            │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐        │
-│  │ Worker  │  │ Worker  │  │ Worker  │  │ Worker  │  ...   │
-│  │ epoll   │  │ epoll   │  │ epoll   │  │ epoll   │        │
-│  │ listen  │  │ listen  │  │ listen  │  │ listen  │        │
-│  └────┬────┘  └────┬────┘  └────┬────┘  └────┬────┘        │
-│       └───────────┴─────┬─────┴───────────┘                 │
-│                         │                                    │
-│            SO_REUSEPORT (内核级负载均衡)                     │
-└─────────────────────────┼───────────────────────────────────┘
-                          │
-                     ┌────┴────┐
-                     │ Clients │
-                     └─────────┘
-```
+![image-20260117022128623](/Users/liangwushang/Library/Application Support/typora-user-images/image-20260117022128623.png)
 
 ### 核心组件
 
@@ -239,39 +219,3 @@ src/
 └── server_config.h     # 配置
 ```
 
-graph TD
-    %% 定义样式
-    classDef client fill:#f9f,stroke:#333,stroke-width:2px;
-    classDef kernel fill:#eee,stroke:#333,stroke-width:1px,stroke-dasharray: 5 5;
-    classDef worker fill:#d4f1f4,stroke:#333,stroke-width:1px;
-    classDef cache fill:#ffed4a,stroke:#333,stroke-width:2px;
-
-    Client((客户端)):::client
-
-    subgraph OS_Kernel [Linux Kernel Space]
-        LB{SO_REUSEPORT<br>内核级负载均衡}:::kernel
-    end
-
-    subgraph User_Space [HttpServer Process]
-        Cache[ResponseCache<br>预加载静态文件/热点数据]:::cache
-        
-        subgraph Thread_Pool [Worker Threads]
-            direction LR
-            W1[Worker 1<br>epoll_fd + listen_fd]:::worker
-            W2[Worker 2<br>epoll_fd + listen_fd]:::worker
-            W3[Worker 3<br>epoll_fd + listen_fd]:::worker
-            W4[Worker N...]:::worker
-        end
-    end
-
-    %% 连接关系
-    Client ==> |TCP Connection| LB
-    LB -.-> |Round Robin| W1
-    LB -.-> |Round Robin| W2
-    LB -.-> |Round Robin| W3
-    LB -.-> |Round Robin| W4
-
-    W1 --> |Read| Cache
-    W2 --> |Read| Cache
-    W3 --> |Read| Cache
-    W4 --> |Read| Cache
